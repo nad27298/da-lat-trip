@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function text(value, limit) {
+      return value is string && value.size() <= limit;
+    }
+    function identity(d, id) {
+      return id.matches('^[a-zA-Z0-9_-]{1,100}$') && d.id == id
+        && d.revision is int && d.revision >= 1 && d.revision <= 1000000000;
+    }
+    function coordinated() {
+      let path = /databases/$(database)/documents/trips/da-lat-2026/control/state;
+      return getAfter(path).data.initialized == true
+        && ((!exists(path) && getAfter(path).data.revision == 1)
+          || (exists(path) && getAfter(path).data.revision == get(path).data.revision + 1));
+    }
+    function stringList(values, count, length) {
+      return values is list && values.size() <= count
+        && (values.size() < 1 || text(values[0], length))
+        && (values.size() < 2 || text(values[1], length))
+        && (values.size() < 3 || text(values[2], length))
+        && (values.size() < 4 || text(values[3], length))
+        && (values.size() < 5 || text(values[4], length))
+        && (values.size() < 6 || text(values[5], length))
+        && (values.size() < 7 || text(values[6], length))
+        && (values.size() < 8 || text(values[7], length));
+    }
+    function activity(d, id) {
+      return d.keys().hasAll(['id','revision','dayId','title','start','end','type','placeId','description','notes','priority','order','alternative'])
+        && d.keys().hasOnly(['id','revision','dayId','title','start','end','type','placeId','description','notes','priority','order','alternative'])
+        && identity(d, id) && d.dayId in ['day-1','day-2','day-3','day-4']
+        && text(d.title, 200) && d.title.size() > 0 && text(d.start, 80) && text(d.end, 80)
+        && text(d.type, 40) && text(d.placeId, 100) && text(d.description, 3000)
+        && text(d.notes, 3000) && text(d.alternative, 3000)
+        && text(d.priority, 40) && d.order is number && d.order >= 0 && d.order <= 100000;
+    }
+    function place(d, id) {
+      return d.keys().hasAll(['id','revision','name','category','address','description','notes','images','imageCredit','googleMapsUrl','latitude','longitude','priority','tags','verificationStatus','dish'])
+        && d.keys().hasOnly(['id','revision','name','category','address','description','notes','images','imageCredit','googleMapsUrl','latitude','longitude','priority','tags','verificationStatus','dish'])
+        && identity(d, id) && text(d.name, 200) && d.name.size() > 0
+        && text(d.category, 40) && text(d.address, 500) && text(d.description, 3000)
+        && text(d.notes, 3000) && stringList(d.images, 3, 1500)
+        && text(d.imageCredit, 500) && text(d.googleMapsUrl, 1500)
+        && ((d.latitude == null && d.longitude == null)
+          || (d.latitude is number && d.latitude >= -90 && d.latitude <= 90
+            && d.longitude is number && d.longitude >= -180 && d.longitude <= 180))
+        && text(d.priority, 40) && stringList(d.tags, 8, 80)
+        && text(d.verificationStatus, 80) && text(d.dish, 500);
+    }
+    function note(d, id) {
+      return d.keys().hasAll(['id','revision','title','body','kind'])
+        && d.keys().hasOnly(['id','revision','title','body','kind'])
+        && identity(d, id) && text(d.title, 200) && d.title.size() > 0
+        && text(d.body, 6000) && text(d.kind, 40);
+    }
+    match /trips/da-lat-2026/control/state {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['revision', 'initialized'])
+        && request.resource.data.revision == 1 && request.resource.data.initialized == true;
+      allow update: if request.resource.data.keys().hasOnly(['revision', 'initialized'])
+        && request.resource.data.revision is int && request.resource.data.revision <= 1000000000
+        && request.resource.data.revision == resource.data.revision + 1
+        && request.resource.data.initialized == true;
+      allow delete: if false;
+    }
+    match /trips/da-lat-2026/{collection}/{id} {
+      allow read: if collection in ['activities','places','restaurants','notes'];
+      allow create: if collection in ['activities','places','restaurants','notes']
+        && request.resource.data.revision == 1 && coordinated()
+        && ((collection == 'activities' && activity(request.resource.data, id))
+          || (collection in ['places','restaurants'] && place(request.resource.data, id))
+          || (collection == 'notes' && note(request.resource.data, id)));
+      allow update: if collection in ['activities','places','restaurants','notes']
+        && request.resource.data.revision == resource.data.revision + 1 && coordinated()
+        && ((collection == 'activities' && activity(request.resource.data, id))
+          || (collection in ['places','restaurants'] && place(request.resource.data, id))
+          || (collection == 'notes' && note(request.resource.data, id)));
+      allow delete: if collection in ['activities','places','restaurants','notes'] && coordinated();
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

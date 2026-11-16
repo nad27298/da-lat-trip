@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /trips/da-lat-2026/{collection}/{id} {
+      allow read: if collection in ['activities','places','restaurants','notes']
+        || (collection == 'control' && id == 'state');
+      allow write: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
