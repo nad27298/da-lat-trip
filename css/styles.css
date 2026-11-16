@@ -1329,8 +1329,61 @@ dialog::backdrop {
   background:#fffdf7;
   border:1px solid #c7cec0;
   color:var(--pine);
-  border-radius:3px;
+  border-radius:10px;
   min-height:44px;
+  transition:border-color .2s, box-shadow .2s;
+}
+
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus {
+  outline:none;
+  border-color:var(--forest);
+  box-shadow:0 0 0 3px #526d5920;
+}
+
+dialog button:focus-visible {
+  outline:2px solid var(--forest);
+  outline-offset:3px;
+}
+
+.time-toggle {
+  align-self:flex-start;
+  padding:4px 0;
+  min-height:32px;
+  font-size:.65rem;
+  text-align:left;
+}
+
+.form-field input[type=time] {
+  min-width:0;
+  min-height:46px;
+}
+
+.quick-add {
+  position:fixed;
+  right:20px;
+  bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index:25;
+  gap:6px;
+  padding:8px;
+  max-width:calc(100% - 24px);
+  border:1px solid #c9cfbc;
+  border-radius:18px;
+  background:var(--cream);
+  box-shadow:0 8px 32px #29483f30;
+}
+
+.quick-add .button {
+  padding:12px;
+  border-radius:11px;
+  font-size:.72rem;
+}
+
+body.editing footer {
+  padding-bottom:110px;
+}
+
+body.editing #toast {
+  bottom:calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 .form-field textarea {

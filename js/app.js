@@ -1,7 +1,7 @@
-import { seed } from './data/seed.js?v=20261116-4';
-import { images } from './data/images.js?v=20261116-4';
-import { createRepository } from './storage/repository.js?v=20261116-4';
-import { validateBackup } from './data/schema.js?v=20261116-4';
+import { seed } from './data/seed.js?v=20261116-6';
+import { images } from './data/images.js?v=20261116-6';
+import { createRepository } from './storage/repository.js?v=20261116-6';
+import { validateBackup } from './data/schema.js?v=20261116-6';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -72,6 +72,9 @@ function imageFor(place) {
   const custom = safeUrl(place?.images?.[0]);
   if (custom) {
     return { url: custom, credit: place.imageCredit || '', source: '' };
+  }
+  if (images.places[place?.id]) {
+    return images.places[place.id];
   }
   const name = place?.name?.toLocaleLowerCase('vi') || '';
   if (name.includes('tuyền lâm')) {
@@ -275,6 +278,11 @@ function newId(prefix) {
   return `${prefix}-${crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`}`;
 }
 
+function timeField(name, label, value, required = false) {
+  const clock = !value || /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  return `<div class="form-field"><label for="time-${name}">${label}</label><input id="time-${name}" name="${name}" type="${clock ? 'time' : 'text'}" value="${escape(value)}" maxlength="80"${required ? ' required' : ''}><button type="button" class="text-button time-toggle" data-time-toggle="${name}">${clock ? 'Nhập khung giờ bằng chữ' : 'Chọn giờ bằng picker'}</button></div>`;
+}
+
 function blankRecord(collection) {
   if (collection === 'activities') {
     const dayId = dayFilter === 'all' ? 'day-1' : dayFilter;
@@ -299,7 +307,7 @@ function editForm(collection, id = null, preset = {}) {
   const record = { ...(original || blankRecord(collection)), ...preset };
   let fields = '';
   if (collection === 'activities') {
-    fields = field('title', 'Tên hoạt động', record.title, { required: true, full: true, max: 160 }) + field('dayId', 'Ngày', record.dayId, { options: seed.days.map((day, index) => [day.id, `Day ${index + 1} · ${day.date}`]) }) + field('type', 'Loại hoạt động', record.type, { options: Object.entries(types) }) + field('start', 'Bắt đầu / khung giờ', record.start, { required: true, max: 80, help: 'VD: 08:30 hoặc Buổi tối' }) + field('end', 'Kết thúc (nếu có)', record.end, { max: 80 }) + field('placeId', 'Địa điểm / nhà hàng', record.placeId, { full: true, options: [['', 'Không gắn địa điểm'], ...data.places.map((place) => [place.id, `Địa điểm · ${place.name}`]), ...data.restaurants.map((place) => [place.id, `Quán · ${place.name}`])] }) + '<div class="form-field full"><button type="button" class="text-button" id="inline-place">+ Tạo địa điểm mới ngay trong form</button></div>' + field('priority', 'Ưu tiên', record.priority, { options: priorityOptions(record.priority) }) + field('description', 'Mô tả', record.description, { textarea: true, full: true }) + field('notes', 'Ghi chú', record.notes, { textarea: true, full: true }) + field('alternative', 'Phương án thay thế', record.alternative, { textarea: true, full: true });
+    fields = field('title', 'Tên hoạt động', record.title, { required: true, full: true, max: 160 }) + field('dayId', 'Ngày', record.dayId, { options: seed.days.map((day, index) => [day.id, `Day ${index + 1} · ${day.date}`]) }) + field('type', 'Loại hoạt động', record.type, { options: Object.entries(types) }) + timeField('start', 'Bắt đầu / khung giờ', record.start, true) + timeField('end', 'Kết thúc (nếu có)', record.end) + field('placeId', 'Địa điểm / nhà hàng', record.placeId, { full: true, options: [['', 'Không gắn địa điểm'], ...data.places.map((place) => [place.id, `Địa điểm · ${place.name}`]), ...data.restaurants.map((place) => [place.id, `Quán · ${place.name}`])] }) + '<div class="form-field full"><button type="button" class="text-button" id="inline-place">+ Tạo địa điểm mới ngay trong form</button></div>' + field('priority', 'Ưu tiên', record.priority, { options: priorityOptions(record.priority) }) + field('description', 'Mô tả', record.description, { textarea: true, full: true }) + field('notes', 'Ghi chú', record.notes, { textarea: true, full: true }) + field('alternative', 'Phương án thay thế', record.alternative, { textarea: true, full: true });
   } else if (collection === 'notes') {
     fields = field('title', 'Tiêu đề', record.title, { required: true, full: true, max: 160 }) + field('kind', 'Loại ghi chú', record.kind, { options: uniqueOptions([['general', 'Ghi chú chung'], ['checklist', 'Checklist'], ['outfit', 'Trang phục'], ['transport', 'Di chuyển'], ['weather', 'Thời tiết']], record.kind) }) + field('body', 'Nội dung', record.body, { full: true, textarea: true, required: true, max: 5000, help: 'Với checklist, mỗi dòng là một mục. Dấu tích chỉ lưu riêng trên trình duyệt.' });
   } else {
@@ -402,7 +410,7 @@ function detail(collection, id) {
     return;
   }
   const image = imageFor(place);
-  openDialog(`<h2 class="dialog-title" id="dialog-title">${escape(place.name)}</h2>${photo(place, 'detail-photo')}<p class="detail-credit">${escape(image?.credit || place.imageCredit || 'Chưa bổ sung ảnh có nguồn xác minh.')}${image?.source ? ` · <a href="${escape(safeUrl(image.source))}" target="_blank" rel="noopener noreferrer">Nguồn ảnh ↗</a>` : ''}</p><div class="detail-body"><p>${escape(place.description)}</p><p>${escape(place.address || 'Địa chỉ chưa chốt')}</p><p>${escape(place.notes)}</p><p>${escape(statusLabel(place.verificationStatus))}</p></div><a class="button" href="${escape(mapsUrl(place))}" target="_blank" rel="noopener noreferrer">Mở Google Maps ↗</a>`);
+  openDialog(`<h2 class="dialog-title" id="dialog-title">${escape(place.name)}</h2>${photo(place, 'detail-photo')}<p class="detail-credit">${escape(image?.credit || place.imageCredit || 'Chưa bổ sung ảnh có nguồn xác minh.')}${image?.source ? ` · <a href="${escape(safeUrl(image.source))}" target="_blank" rel="noopener noreferrer">Nguồn ảnh ↗</a>` : ''}${image?.license ? ` · <a href="${escape(safeUrl(image.license))}" target="_blank" rel="noopener noreferrer">Giấy phép ↗</a>` : ''}</p><div class="detail-body"><p>${escape(place.description)}</p><p>${escape(place.address || 'Địa chỉ chưa chốt')}</p><p>${escape(place.notes)}</p><p>${escape(statusLabel(place.verificationStatus))}</p></div><a class="button" href="${escape(mapsUrl(place))}" target="_blank" rel="noopener noreferrer">Mở Google Maps ↗</a>`);
   bindImageFallbacks(dialog);
 }
 
@@ -459,7 +467,17 @@ document.addEventListener('click', (event) => {
   if (!button) {
     return;
   }
-  if (button.dataset.tab || button.dataset.day) {
+  if (button.dataset.timeToggle) {
+    const input = $(`[name="${button.dataset.timeToggle}"]`, dialog);
+    const wasClock = input.type === 'time';
+    input.dataset[wasClock ? 'clockValue' : 'textValue'] = input.value;
+    const previous = input.value;
+    input.type = wasClock ? 'text' : 'time';
+    input.value = wasClock ? (input.dataset.textValue ?? previous) : (/^([01]\d|2[0-3]):[0-5]\d$/.test(previous) ? previous : input.dataset.clockValue || '');
+    input.placeholder = wasClock ? 'VD: Buổi tối, Chiều…' : '';
+    button.textContent = wasClock ? 'Chọn giờ bằng picker' : 'Nhập khung giờ bằng chữ';
+    input.focus();
+  } else if (button.dataset.tab || button.dataset.day) {
     dayFilter = button.dataset.tab || button.dataset.day;
     renderTimeline();
   } else if (button.dataset.edit) {

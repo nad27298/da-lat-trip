@@ -67,7 +67,7 @@ Xuất bản sao cloud, publish `firebase/firestore.readonly.rules` trong Fireba
 
 Lịch là bản nháp từ brief. Chưa xác minh giờ mở cửa, giá, thời gian hạ cánh, xe và nhiều địa chỉ quán. Khung tham quan hồ không phải dự báo hoàng hôn. Không có tọa độ đoán hoặc marker giả; route dùng Google Maps Search/Directions và cần kiểm tra cơ sở thật.
 
-Ảnh Wikimedia Commons được ghi nguồn/tác giả/giấy phép trong `js/data/images.js`, hiển thị credit hero và trong chi tiết địa điểm. Không có ảnh phù hợp sẽ hiển thị gradient có nhãn; không dùng ảnh nơi khác gán cho quán. Ảnh bên ngoài cần mạng; font có system/Georgia fallback. Khi thêm ảnh local cần bảo đảm quyền sử dụng và ghi credit.
+Ảnh mặc định gồm Hồ Tuyền Lâm, ga Đà Lạt, Hồ Xuân Hương, đồi chè Cầu Đất, chùa Linh Phước, Thiền viện Trúc Lâm, chợ đêm và Thung lũng Tình Yêu. Ảnh Wikimedia Commons được ghi nguồn/tác giả/giấy phép trong `js/data/images.js`, hiển thị credit hero và trong chi tiết địa điểm. Không có ảnh phù hợp sẽ hiển thị gradient có nhãn; không dùng ảnh nơi khác gán cho quán. Ảnh bên ngoài cần mạng; font có system/Georgia fallback. Khi thêm ảnh local cần bảo đảm quyền sử dụng và ghi credit.
 
 ## Giới hạn vận hành
 
