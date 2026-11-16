@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getFirestore, collection, doc, onSnapshot, runTransaction, getDocsFromServer, getDocFromServer } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import { collections, clone, seedBackup } from "./local.js?v=20261116-2";
-import { validateBackup, validateRecord } from "../data/schema.js?v=20261116-2";
+import { collections, clone, seedBackup } from "./local.js?v=20261116-3";
+import { validateBackup, validateRecord } from "../data/schema.js?v=20261116-3";
 
 export async function firestoreAdapter(settings, onChange, onStatus) {
   if (!settings.config.projectId || !settings.config.apiKey || !settings.config.appId) {

@@ -1,5 +1,5 @@
-import { seed } from "../data/seed.js?v=20261116-2";
-import { validateBackup, validateRecord } from "../data/schema.js?v=20261116-2";
+import { seed } from "../data/seed.js?v=20261116-3";
+import { validateBackup, validateRecord } from "../data/schema.js?v=20261116-3";
 
 export const collections = ["activities", "places", "restaurants", "notes"];
 const KEY = "dalat-trip-data-v1";
