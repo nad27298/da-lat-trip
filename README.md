@@ -90,3 +90,23 @@ node tests/verify.mjs
 Kiểm tra seed/schema, local CRUD, conflict, refresh, JSON roundtrip, lỗi quota và đường dẫn tương đối. Không thay thế kiểm thử trình duyệt hoặc Firestore thực.
 
 Kết quả và giới hạn kiểm thử thực tế: [VERIFICATION.md](VERIFICATION.md).
+
+## Cache busting khi cập nhật GitHub Pages
+
+CSS, JavaScript entry point và toàn bộ import module nội bộ (kể cả dynamic import Firestore) dùng cùng query `?v=<version>`. Query của entry point không tự truyền xuống các ES Modules, nên import nội bộ cũng cần version. Firebase SDK CDN đã có phiên bản cố định trong URL và được giữ nguyên.
+
+Mỗi lần phát hành thay đổi CSS/JS hoặc Firebase config, chạy từ thư mục project:
+
+```sh
+python3 scripts/bump-version.py
+```
+
+Script tự tăng hậu tố version hiện tại (ví dụ `20261116-1` → `20261116-2`) và đồng bộ CSS, JavaScript entry point cùng mọi import/export module nội bộ trong `js/`, kể cả dynamic import dùng chuỗi literal. Import nội bộ mới chưa có query cũng được bổ sung. URL CDN bên ngoài được giữ nguyên.
+
+Có thể chỉ định version:
+
+```sh
+python3 scripts/bump-version.py 20261212-1
+```
+
+Script dùng thư viện chuẩn Python 3, tìm project theo vị trí script nên cũng chạy được từ thư mục khác qua đường dẫn tuyệt đối. Không cần npm/build step, không tạo Service Worker, không commit/push. Với import động tính URL bằng biểu thức, cần tự đưa version vào URL; script chỉ xử lý module specifier là chuỗi literal. Chạy script sau khi sửa code và trước khi tự commit/push; cùng bản phát hành vẫn tận dụng cache. Các đường dẫn giữ tương đối, tương thích `/da-lat-trip/`.

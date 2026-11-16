@@ -1,7 +1,7 @@
-import { seed } from './data/seed.js';
-import { images } from './data/images.js';
-import { createRepository } from './storage/repository.js';
-import { validateBackup } from './data/schema.js';
+import { seed } from './data/seed.js?v=20261116-2';
+import { images } from './data/images.js?v=20261116-2';
+import { createRepository } from './storage/repository.js?v=20261116-2';
+import { validateBackup } from './data/schema.js?v=20261116-2';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
