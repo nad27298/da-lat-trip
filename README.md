@@ -110,3 +110,17 @@ python3 scripts/bump-version.py 20261212-1
 ```
 
 Script dùng thư viện chuẩn Python 3, tìm project theo vị trí script nên cũng chạy được từ thư mục khác qua đường dẫn tuyệt đối. Không cần npm/build step, không tạo Service Worker, không commit/push. Với import động tính URL bằng biểu thức, cần tự đưa version vào URL; script chỉ xử lý module specifier là chuỗi literal. Chạy script sau khi sửa code và trước khi tự commit/push; cùng bản phát hành vẫn tận dụng cache. Các đường dẫn giữ tương đối, tương thích `/da-lat-trip/`.
+
+## Plan thay thế ngày 19/11/2026
+
+Seed hiện tại dùng bảng mới của nhóm: ngày 13/12 săn mây Đa Phú; ngày 14/12 Cầu Đất và IYASHI; ngày 15/12 Thôn 13/Tà Nung linh hoạt trước chuyến bay 14:30. Các mục “hoặc/có thể” giữ đúng trạng thái lựa chọn; không tự chia giờ chi tiết trong một khung buổi. 150.000đ thuê xe máy và 350.000đ xe sân bay chỉ là tham khảo, chưa tính tổng hoặc coi là giá mỗi người.
+
+File [data/plan-20261119.json](data/plan-20261119.json) đúng schema để nhập qua website, thay toàn bộ bốn collection. Đã lưu bản cloud trước thay vào `backups/cloud-before-plan-20261119.json` tại máy làm việc; thư mục `backups/` được Git bỏ qua. Chỉ khôi phục khi cần, không tự nhập lại đè chỉnh sửa mới của nhóm.
+
+Sau khi tự sửa seed, xuất file JSON nhập lại bằng một lệnh (Node 22+, không npm/build):
+
+```sh
+node scripts/export-seed.mjs data/trip-plan.json
+```
+
+Lệnh chỉ xuất JSON và kiểm tra schema; không ghi cloud. Dùng **Chỉnh sửa → Nhập JSON**, đọc cảnh báo và gõ `RESTORE` để thay dữ liệu cloud. Cần xuất bản sao hiện tại trước. Metadata ngày/theme/route và ảnh overview vẫn lấy từ seed trong source, nên thay metadata cần deploy code cùng bản data. Import JSON chỉ cập nhật activities/places/restaurants/notes.

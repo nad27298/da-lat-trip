@@ -1,7 +1,7 @@
-import { seed } from './data/seed.js?v=20261116-6';
-import { images } from './data/images.js?v=20261116-6';
-import { createRepository } from './storage/repository.js?v=20261116-6';
-import { validateBackup } from './data/schema.js?v=20261116-6';
+import { seed } from './data/seed.js?v=20261119-1';
+import { images } from './data/images.js?v=20261119-1';
+import { createRepository } from './storage/repository.js?v=20261119-1';
+import { validateBackup } from './data/schema.js?v=20261119-1';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -131,14 +131,14 @@ function statusLabel(status) {
 }
 
 function renderDays() {
-  const dayImages = [images.city, images.tea, images.lake, images.station];
+  const dayImages = seed.days.map((day) => imageFor(placeById(day.imagePlaceId)));
   $('#day-cards').innerHTML = seed.days.map((day, index) => `<article class="day-card"><a href="#itinerary" data-day="${day.id}" aria-label="Xem lịch ngày ${index + 1}"><div class="day-photo">${photo({ name: day.title }, '', dayImages[index])}<span class="day-number">0${index + 1}</span></div><span class="eyebrow">${escape(day.date)} / DAY ${index + 1}</span><h3>${escape(day.title)}</h3><p>${escape(day.route)}</p><span class="text-button">Khám phá ngày ${index + 1} ↗</span></a></article>`).join('');
   $('#day-tabs').innerHTML = [{ id: 'all', label: 'All' }, ...seed.days.map((day, index) => ({ id: day.id, label: `Day ${index + 1}` }))].map((day) => `<button class="day-tab" data-tab="${day.id}" aria-pressed="${dayFilter === day.id}">${day.label}</button>`).join('');
   $('#map-day').innerHTML = seed.days.map((day, index) => `<option value="${day.id}">Day ${index + 1} · ${escape(day.date)}</option>`).join('');
   const colors = [['#393d37', '#b0a497', '#e6ddd0'], ['#faf7ec', '#d3bfa3', '#bf9c87'], ['#d6c7ae', '#315e4c', '#743b46'], ['#a87c58', '#f2e4cd', '#656d5c']];
   $('#outfits').innerHTML = seed.days.map((day, index) => {
     const note = data.notes.find((entry) => entry.id === `outfit-${index + 1}`);
-    return `<article class="outfit-card"><span class="eyebrow">DAY 0${index + 1}</span><h3>${escape(['Winter in the city', 'Soft days, tea hills', 'Into the pine forest', 'A vintage goodbye'][index])}</h3><p>${escape(note?.body || day.outfit)}</p><div class="color-chips" aria-hidden="true">${colors[index].map((color) => `<span style="background:${color}"></span>`).join('')}</div>${note ? `<button class="text-button edit-only" data-edit="notes" data-id="${note.id}">Sửa gợi ý</button>` : ''}</article>`;
+    return `<article class="outfit-card"><span class="eyebrow">DAY 0${index + 1}</span><h3>${escape(day.title)}</h3><p>${escape(note?.body || day.outfit)}</p><div class="color-chips" aria-hidden="true">${colors[index].map((color) => `<span style="background:${color}"></span>`).join('')}</div>${note ? `<button class="text-button edit-only" data-edit="notes" data-id="${note.id}">Sửa gợi ý</button>` : ''}</article>`;
   }).join('');
 }
 
@@ -567,6 +567,21 @@ $('#export').addEventListener('click', async () => {
   }
 });
 $('#import').addEventListener('click', () => $('#import-file').click());
+
+function confirmCloudRestore() {
+  return new Promise((resolve) => {
+    let accepted = false;
+    openDialog('<h2 class="dialog-title" id="dialog-title">Thay thế plan chung?</h2><p>Bản JSON sẽ thay toàn bộ hoạt động, địa điểm, quán và ghi chú trên cloud. Hãy giữ bản sao lưu trước khi tiếp tục.</p><form id="restore-form"><label class="form-field">Gõ RESTORE để xác nhận<input name="confirmation" required pattern="RESTORE" autocomplete="off" spellcheck="false"></label><div class="form-actions"><button type="button" class="button button-outline" id="cancel-restore">Hủy</button><button type="submit" class="button">Thay thế plan</button></div></form>');
+    dialog.addEventListener('close', () => resolve(accepted), { once: true });
+    $('#cancel-restore').addEventListener('click', closeDialog);
+    $('#restore-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      accepted = true;
+      dialog.close();
+    });
+  });
+}
+
 $('#import-file').addEventListener('change', async (event) => {
   const file = event.target.files[0];
   event.target.value = '';
@@ -582,7 +597,7 @@ $('#import-file').addEventListener('change', async (event) => {
     if (!confirm(`Nhập ${count} mục và thay thế toàn bộ dữ liệu ${repo.mode === 'cloud' ? 'CLOUD CHUNG CỦA MỌI NGƯỜI' : 'local hiện tại'}? Hãy xuất JSON trước khi tiếp tục.`)) {
       return;
     }
-    if (repo.mode === 'cloud' && prompt('Thao tác này thay thế dữ liệu chung. Gõ RESTORE để xác nhận:') !== 'RESTORE') {
+    if (repo.mode === 'cloud' && !await confirmCloudRestore()) {
       return;
     }
     busy = true;

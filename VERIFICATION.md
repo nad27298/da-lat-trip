@@ -30,3 +30,13 @@ python3 -m http.server 8000
 ```
 
 Mở http://localhost:8000. Không cần npm/build. Node 22+ với ES module syntax detection để chạy script kiểm tra.
+
+## Cập nhật plan ngày 19/11/2026
+
+- Xuất bản cloud trước thay vào `backups/cloud-before-plan-20261119.json` (Git ignored), đồng thời có file tải trong Downloads.
+- Xuất `data/plan-20261119.json` qua `scripts/export-seed.mjs`; schema và tham chiếu hợp lệ: 35 hoạt động, 20 địa điểm, 5 quán, 11 ghi chú.
+- Thay toàn bộ bốn collection qua `repo.importData` hiện có; Firestore đã xác nhận thành công và hiển thị “Cloud Mode · Đã đồng bộ”.
+- Tab public mở riêng tự nhận 35 hoạt động; ngày 13 có Đa Phú và ngày 14 có Cầu Đất đúng plan mới.
+- Cập nhật seed/theme/route/ảnh đại diện ngày trong source; metadata này chỉ lên public sau khi chủ repo deploy.
+- Thay prompt RESTORE bằng dialog của site vì trình duyệt in-app không hỗ trợ prompt; xác nhận nhập RESTORE và import thực tế đã thành công.
+- Không chạy build/test suite. Kiểm tra source bằng `git diff --check`.
