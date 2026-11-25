@@ -1,7 +1,7 @@
-import { seed } from './data/seed.js?v=20261119-1';
-import { images } from './data/images.js?v=20261119-1';
-import { createRepository } from './storage/repository.js?v=20261119-1';
-import { validateBackup } from './data/schema.js?v=20261119-1';
+import { seed } from './data/seed.js?v=20261119-2';
+import { images } from './data/images.js?v=20261119-2';
+import { createRepository } from './storage/repository.js?v=20261119-2';
+import { validateBackup } from './data/schema.js?v=20261119-2';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -648,6 +648,56 @@ function updateMode() {
   }
 }
 
+function initTripClock() {
+  const start = Date.parse('2026-12-12T12:30:00+07:00');
+  const end = Date.parse('2026-12-15T14:30:00+07:00');
+  const clock = $('#trip-clock');
+  const title = $('#trip-clock-title');
+  const caption = $('#trip-clock-caption');
+  const values = $('#trip-clock-values');
+  const digits = $$('[data-clock-value]', clock);
+  const progress = $('#trip-clock-progress');
+  let timer;
+  let previousState;
+
+  function refresh() {
+    clearTimeout(timer);
+    const now = Date.now();
+    const state = now < start ? 'before' : now < end ? 'during' : 'ended';
+    if (state !== previousState) {
+      title.textContent = state === 'before' ? 'Đà Lạt đang chờ!' : state === 'during' ? 'Đang trong hành trình' : 'Đã kết thúc';
+      caption.textContent = state === 'before' ? 'Đếm ngược đến lúc chúng mình xuất phát.' : state === 'during' ? 'Đã đi được / tổng hành trình 3 ngày 2 giờ.' : 'Cảm ơn những ngày cùng nhau ở Đà Lạt.';
+      previousState = state;
+    }
+    values.hidden = state === 'ended';
+    progress.hidden = state !== 'during';
+    if (state !== 'ended') {
+      const seconds = state === 'before' ? Math.ceil((start - now) / 1000) : Math.floor((now - start) / 1000);
+      const parts = {
+        days: Math.floor(seconds / 86400),
+        hours: Math.floor(seconds / 3600) % 24,
+        minutes: Math.floor(seconds / 60) % 60,
+        seconds: seconds % 60
+      };
+      digits.forEach((digit) => {
+        digit.textContent = String(parts[digit.dataset.clockValue]).padStart(2, '0');
+      });
+      progress.value = Math.max(0, Math.min(1, (now - start) / (end - start)));
+      if (!document.hidden) {
+        timer = setTimeout(refresh, 1000);
+      }
+    }
+    clock.hidden = false;
+  }
+
+  document.addEventListener('visibilitychange', refresh);
+  window.addEventListener('pageshow', refresh);
+  window.addEventListener('pagehide', () => {
+    clearTimeout(timer);
+  });
+  refresh();
+}
+
 async function init() {
   if (images.hero?.url) {
     const probe = new Image();
@@ -695,4 +745,5 @@ async function init() {
     toast(error.message, true);
   }
 }
+initTripClock();
 init();

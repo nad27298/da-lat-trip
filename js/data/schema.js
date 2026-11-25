@@ -1,4 +1,4 @@
-import { seed } from "./seed.js?v=20261119-1";
+import { seed } from "./seed.js?v=20261119-2";
 
 export const collections = ["activities", "places", "restaurants", "notes"];
 const fields = {

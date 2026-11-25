@@ -1,5 +1,5 @@
-import { firebaseSettings } from "../firebase-config.js?v=20261119-1";
-import { localAdapter } from "./local.js?v=20261119-1";
+import { firebaseSettings } from "../firebase-config.js?v=20261119-2";
+import { localAdapter } from "./local.js?v=20261119-2";
 
 export async function createRepository(onChange, onStatus) {
   if (!firebaseSettings.enabled) {
@@ -7,7 +7,7 @@ export async function createRepository(onChange, onStatus) {
   }
   onStatus({ state: "loading", message: "Đang kết nối Firestore…" });
   try {
-    const { firestoreAdapter } = await import("./firestore.js?v=20261119-1");
+    const { firestoreAdapter } = await import("./firestore.js?v=20261119-2");
     return await firestoreAdapter(firebaseSettings, onChange, onStatus);
   } catch (error) {
     onStatus({ state: "error", message: "Không kết nối được cloud: " + error.message });
